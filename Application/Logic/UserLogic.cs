@@ -1,12 +1,12 @@
 using Application.DaoInterfaces;
-using Application.LogicInterfaces;
+using Application.LogicInterface;
 using Domain.DTOs;
 using Domain.Models;
 
 namespace Application.Logic;
 
 public class UserLogic : IUserLogic
-{
+{ 
     private readonly IUserDao userDao;
 
     public UserLogic(IUserDao userDao)
@@ -14,29 +14,47 @@ public class UserLogic : IUserLogic
         this.userDao = userDao;
     }
 
-    public async Task<User> CreateAsync(UserCreationDto dto)
+    public async Task<AuthenticationUser> CreateAsync(UserCreationDto dto)
     {
-        User? existing = await userDao.GetByUsernameAsync(dto.UserName);
+        AuthenticationUser? existing = await userDao.GetByUsernameAsync(dto.UserName);
         if (existing != null)
             throw new Exception("Username already taken!");
 
-        ValidateData(dto);
-        User toCreate = new User
+        ValidateUserName(dto);
+        AuthenticationUser toCreate = new AuthenticationUser()
         {
-            UserName = dto.UserName
+            Username = dto.UserName,
+            Age = dto.Age,
+            Domain = dto.Domain,
+            Email = dto.Email,
+            Name = dto.Name,
+            Password = dto.PassWord,
+            Role = dto.Role,
+            SecurityLevel = dto.SecurityLevel
         };
         
-        User created = await userDao.CreateAsync(toCreate);
+        AuthenticationUser created = await userDao.CreateAsync(toCreate);
         
         return created;
     }
+    
 
-    public Task<IEnumerable<User>> GetAsync(SearchUserParametersDto searchParameters)
+    public async Task<AuthenticationUser> ValidateLogin(AuthUserLoginDto dto)
     {
-        return userDao.GetAsync(searchParameters);
+        AuthenticationUser? existing = await userDao.GetByUsernameAsync(dto.Username);
+        if (existing == null)
+            throw new Exception("User does not exist!");
+
+        if (dto.Password != existing.Password)
+        {
+            throw new Exception("Wrong password");
+        }
+        
+        return existing;
+
     }
 
-    private static void ValidateData(UserCreationDto userToCreate)
+    private void ValidateUserName(UserCreationDto userToCreate)
     {
         string userName = userToCreate.UserName;
 

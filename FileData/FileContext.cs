@@ -17,7 +17,7 @@ public class FileContext
         }
     }
 
-    public ICollection<User> Users
+    public ICollection<AuthenticationUser> Users
     {
         get
         {
@@ -35,14 +35,14 @@ public class FileContext
             dataContainer = new ()
             {
                 Posts = new List<Post>(),
-                Users = new List<User>()
+                Users = new List<AuthenticationUser>()
             };
             return;
         }
         string content = File.ReadAllText(filePath);
         dataContainer = JsonSerializer.Deserialize<DataContainer>(content);
     }
-
+    
     public void SaveChanges()
     {
         string serialized = JsonSerializer.Serialize(dataContainer, new JsonSerializerOptions

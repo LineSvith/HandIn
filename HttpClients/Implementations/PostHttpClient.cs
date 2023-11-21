@@ -1,15 +1,16 @@
 using System.Net.Http.Json;
-using System.Text;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using Domain.DTOs;
 using Domain.Models;
+using HttpClients.AuthServices;
 using HttpClients.ClientInterfaces;
 
 namespace HttpClients.Implementations;
 
-
 public class PostHttpClient : IPostService
 {
+   
     private readonly HttpClient client;
 
     public PostHttpClient(HttpClient client)
@@ -17,24 +18,28 @@ public class PostHttpClient : IPostService
         this.client = client;
     }
 
-    public async Task CreateAsync(PostCreationDto dto)
+    public async Task<Post> Create(PostCreationDto dto)
     {
-        string dtoAsJson = JsonSerializer.Serialize(dto);
-        StringContent body = new StringContent(dtoAsJson, Encoding.UTF8, "application/json");
-        
-        HttpResponseMessage response = await client.PostAsJsonAsync("/posts", dto);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JwtAuthService.Jwt);
+        HttpResponseMessage response = await client.PostAsJsonAsync("/post/createPost", dto);
+        string result = await response.Content.ReadAsStringAsync();
         if (!response.IsSuccessStatusCode)
         {
-            string content = await response.Content.ReadAsStringAsync();
-            throw new Exception(content);
+            throw new Exception(result);
         }
+
+        Post post = JsonSerializer.Deserialize<Post>(result, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        })!;
+        return post;
     }
 
-    public async Task<ICollection<Post>> GetAsync(string? userName, int? userId, bool? completedStatus, string? titleContains)
+    public async Task<ICollection<Post>> GetAsync(string? userName, int? postId, string? titleContains, string? bodyContains)
     {
-        string query = ConstructQuery(userName, userId, completedStatus, titleContains);
-
-        HttpResponseMessage response = await client.GetAsync("/posts" + query);
+        string query = ConstructQuery(userName, postId, titleContains, bodyContains);
+        
+        HttpResponseMessage response = await client.GetAsync("/post");
         string content = await response.Content.ReadAsStringAsync();
         if (!response.IsSuccessStatusCode)
         {
@@ -47,48 +52,8 @@ public class PostHttpClient : IPostService
         })!;
         return posts;
     }
-
-    public async Task UpdateAsync(PostUpdateDto dto)
-    {
-        string dtoAsJson = JsonSerializer.Serialize(dto);
-        StringContent body = new StringContent(dtoAsJson, Encoding.UTF8, "application/json");
-
-        HttpResponseMessage response = await client.PatchAsync("/posts", body);
-        if (!response.IsSuccessStatusCode)
-        {
-            string content = await response.Content.ReadAsStringAsync();
-            throw new Exception(content);
-        }
-    }
-
-    public async Task<PostBasicDto> GetByIdAsync(int id)
-    {
-        HttpResponseMessage response = await client.GetAsync($"/posts/{id}");
-        string content = await response.Content.ReadAsStringAsync();
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new Exception(content);
-        }
-
-        PostBasicDto post = JsonSerializer.Deserialize<PostBasicDto>(content, 
-            new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        })!;
-        return post;
-    }
-
-    public async Task DeleteAsync(int id)
-    {
-        HttpResponseMessage response = await client.DeleteAsync($"Posts/{id}");
-        if (!response.IsSuccessStatusCode)
-        {
-            string content = await response.Content.ReadAsStringAsync();
-            throw new Exception(content);
-        }
-    }
-
-    private static string ConstructQuery(string? userName, int? userId, bool? completedStatus, string? titleContains)
+    
+    private static string ConstructQuery(string? userName, int? postId, string? titleContains, string? bodyContains)
     {
         string query = "";
         if (!string.IsNullOrEmpty(userName))
@@ -96,16 +61,16 @@ public class PostHttpClient : IPostService
             query += $"?username={userName}";
         }
 
-        if (userId != null)
+        if (postId != null)
         {
             query += string.IsNullOrEmpty(query) ? "?" : "&";
-            query += $"userid={userId}";
+            query += $"userid={postId}";
         }
 
-        if (completedStatus != null)
+        if (!string.IsNullOrEmpty(bodyContains))
         {
             query += string.IsNullOrEmpty(query) ? "?" : "&";
-            query += $"completedstatus={completedStatus}";
+            query += $"bodyContains={bodyContains}";
         }
 
         if (!string.IsNullOrEmpty(titleContains))

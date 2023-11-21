@@ -17,7 +17,7 @@ public class UserHttpClient : IUserService
 
     public async Task<User> Create(UserCreationDto dto)
     {
-        HttpResponseMessage response = await client.PostAsJsonAsync("/users", dto);
+        HttpResponseMessage response = await client.PostAsJsonAsync("/users/CreateUser", dto);
         string result = await response.Content.ReadAsStringAsync();
         if (!response.IsSuccessStatusCode)
         {
@@ -31,24 +31,19 @@ public class UserHttpClient : IUserService
         return user;
     }
 
-    public async Task<IEnumerable<User>> GetUsers(string? usernameContains = null)
+    public async Task<UserLoginDto> Login(UserCreationDto dto)
     {
-        string uri = "/users";
-        if (!string.IsNullOrEmpty(usernameContains))
-        {
-            uri += $"?username={usernameContains}";
-        }
-        HttpResponseMessage response = await client.GetAsync(uri);
+        HttpResponseMessage response = await client.PostAsJsonAsync("/users/login", dto);
         string result = await response.Content.ReadAsStringAsync();
         if (!response.IsSuccessStatusCode)
         {
             throw new Exception(result);
         }
 
-        IEnumerable<User> users = JsonSerializer.Deserialize<IEnumerable<User>>(result, new JsonSerializerOptions
+        UserLoginDto user = JsonSerializer.Deserialize<UserLoginDto>(result, new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         })!;
-        return users;
+        return user;
     }
 }

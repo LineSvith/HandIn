@@ -9,7 +9,8 @@ public class PostLogic : IPostLogic
 {
     private readonly IPostDao postDao;
     private readonly IUserDao userDao;
-
+    
+    
     public PostLogic(IPostDao postDao, IUserDao userDao)
     {
         this.postDao = postDao;
@@ -18,95 +19,24 @@ public class PostLogic : IPostLogic
 
     public async Task<Post> CreateAsync(PostCreationDto dto)
     {
-        User? user = await userDao.GetByIdAsync(dto.OwnerId);
-        if (user == null)
+        AuthenticationUser? ownerUsername = await userDao.GetByUsernameAsync(dto.Username);
+        if (ownerUsername == null)
+            throw new Exception("You need to Login first!");
+        
+        Post toCreate = new Post
         {
-            throw new Exception($"User with id {dto.OwnerId} was not found.");
-        }
-
-        Post post = new Post(user, dto.Title);
-
-        ValidatePost(post);
-
-        Post created = await postDao.CreateAsync(post);
-        return created;
-    }
-
-    public Task<IEnumerable<Post>> GetAsync(SearchPostParametersDto searchParameters)
-    {
-        return postDao.GetAsync(searchParameters);
-    }
-
-    public async Task UpdateAsync(PostUpdateDto dto)
-    {
-        Post? existing = await postDao.GetByIdAsync(dto.Id);
-
-        if (existing == null)
-        {
-            throw new Exception($"Post with ID {dto.Id} not found!");
-        }
-
-        User? user = null;
-        if (dto.OwnerId != null)
-        {
-            user = await userDao.GetByIdAsync((int)dto.OwnerId);
-            if (user == null)
-            {
-                throw new Exception($"User with id {dto.OwnerId} was not found.");
-            }
-        }
-
-        if (dto.IsCompleted != null && existing.IsCompleted && !(bool)dto.IsCompleted)
-        {
-            throw new Exception("Cannot un-complete a completed Post");
-        }
-
-        User userToUse = user ?? existing.Owner;
-        string titleToUse = dto.Title ?? existing.Title;
-        bool completedToUse = dto.IsCompleted ?? existing.IsCompleted;
-
-        Post updated = new(userToUse, titleToUse)
-        {
-            IsCompleted = completedToUse,
-            Id = existing.Id,
+            Owner = ownerUsername,
+            body = dto.body,
+            Title = dto.Title
         };
 
-        ValidatePost(updated);
+        Post Created = await postDao.CreateAsync(toCreate);
 
-        await postDao.UpdateAsync(updated);
+        return Created;
     }
 
-    public async Task DeleteAsync(int id)
+    public Task<IEnumerable<Post>> GetAsync(PostSearchParametersDto dto)
     {
-        Post? post = await postDao.GetByIdAsync(id);
-        if (post == null)
-        {
-            throw new Exception($"Post with ID {id} was not found!");
-        }
-
-        if (!post.IsCompleted)
-        {
-            throw new Exception("Cannot delete un-completed Post!");
-        }
-
-        await postDao.DeleteAsync(id);
+        return postDao.GetAsync(dto);
     }
-
-    public async Task<PostBasicDto> GetByIdAsync(int id)
-    {
-        Post? post = await postDao.GetByIdAsync(id);
-        if (post == null)
-        {
-            throw new Exception($"Post with id {id} not found");
-        }
-
-        return new PostBasicDto(post.Id, post.Owner.UserName, post.Title, post.IsCompleted);
-    }
-
-    private void ValidatePost(Post dto)
-    {
-        if (string.IsNullOrEmpty(dto.Title)) throw new Exception("Title cannot be empty.");
-        // other validation stuff
-    }
-
 }

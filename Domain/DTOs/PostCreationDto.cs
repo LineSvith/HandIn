@@ -2,12 +2,14 @@ namespace Domain.DTOs;
 
 public class PostCreationDto
 {
-    public int OwnerId { get; }
-    public string Title { get; }
+    public string Username { get; set; }
+    public string Title { get; set; }
+    public string body { get; set; }
 
-    public PostCreationDto(int ownerId, string title)
+    public PostCreationDto(string username, string title, string body)
     {
-        OwnerId = ownerId;
+        Username = username;
         Title = title;
+        this.body = body;
     }
 }

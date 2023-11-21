@@ -13,86 +13,43 @@ public class PostFileDao : IPostDao
         this.context = context;
     }
 
-    public Task<Post> CreateAsync(Post post)
+
+    public Task<Post> CreateAsync(Post toPost)
     {
-        int id = 1;
+        int postId = 1;
         if (context.Posts.Any())
         {
-            id = context.Posts.Max(p => p.Id);
-            id++;
+            postId = context.Posts.Max(p => p.Id);
+            postId++;
         }
 
-        post.Id = id;
-
-        context.Posts.Add(post);
+        toPost.Id = postId;
+        
+        context.Posts.Add(toPost);
         context.SaveChanges();
 
-        return Task.FromResult(post);
+        return Task.FromResult(toPost);
     }
 
-    public Task<IEnumerable<Post>> GetAsync(SearchPostParametersDto searchParams)
+    public Task<IEnumerable<Post>> GetAsync(PostSearchParametersDto dto)
     {
         IEnumerable<Post> result = context.Posts.AsEnumerable();
 
-        if (!string.IsNullOrEmpty(searchParams.Username))
+        if (!string.IsNullOrEmpty(dto.Title))
         {
-            // we know username is unique, so just fetch the first
-            result = context.Post.Where(post =>
-                post.Owner.UserName.Equals(searchParams.Username, StringComparison.OrdinalIgnoreCase));
+            result = context.Posts.Where(post => post.Title == dto.Title);
         }
 
-        if (searchParams.UserId != null)
+        if (!string.IsNullOrEmpty(dto.Body))
         {
-            result = result.Where(p => p.Owner.Id == searchParams.UserId);
+            result = context.Posts.Where(post => post.body == dto.Body);
         }
 
-        if (searchParams.CompletedStatus != null)
+        if (dto.PostId != null)
         {
-            result = result.Where(p => p.IsCompleted == searchParams.CompletedStatus);
-        }
-
-        if (!string.IsNullOrEmpty(searchParams.TitleContains))
-        {
-            result = result.Where(p =>
-                p.Title.Contains(searchParams.TitleContains, StringComparison.OrdinalIgnoreCase));
+            result = result.Where(r => r.Id == dto.PostId);
         }
 
         return Task.FromResult(result);
-    }
-
-    public Task<Post?> GetByIdAsync(int postId)
-    {
-        Post? existing = context.Posts.FirstOrDefault(p => p.Id == PostId);
-        return Task.FromResult(existing);
-    }
-
-    public Task DeleteAsync(int id)
-    {
-        Post? existing = context.Posts.FirstOrDefault(post => post.Id == id);
-        if (existing == null)
-        {
-            throw new Exception($"Post with id {id} does not exist!");
-        }
-
-        context.Posts.Remove(existing); 
-        context.SaveChanges();
-
-        return Task.CompletedTask;
-    }
-
-    public Task UpdateAsync(Post toUpdate)
-    {
-        Post? existing = context.Posts.FirstOrDefault(post => post.Id == toUpdate.Id);
-        if (existing == null)
-        {
-            throw new Exception($"Post with id {toUpdate.Id} does not exist!");
-        }
-
-        context.Posts.Remove(existing);
-        context.Posts.Add(toUpdate);
-        
-        context.SaveChanges();
-        
-        return Task.CompletedTask;
     }
 }
