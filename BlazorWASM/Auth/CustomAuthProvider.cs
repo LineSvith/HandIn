@@ -30,5 +30,8 @@ public class CustomAuthProvider : AuthenticationStateProvider
                 new AuthenticationState(principal)
             )
         );
+        
+        
     }
+
 }

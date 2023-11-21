@@ -30,9 +30,9 @@ public class PostLogic : IPostLogic
             Title = dto.Title
         };
 
-        Post Created = await postDao.CreateAsync(toCreate);
+        Post created = await postDao.CreateAsync(toCreate);
 
-        return Created;
+        return created;
     }
 
     public Task<IEnumerable<Post>> GetAsync(PostSearchParametersDto dto)
