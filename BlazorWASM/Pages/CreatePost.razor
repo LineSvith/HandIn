@@ -1,9 +1,11 @@
 @page "/CreatePost"
 @using Domain.DTOs
+@using Application.Logic
 @using HttpClients.AuthServices
 @using HttpClients.ClientInterfaces
+@using System.Security.Claims
 @inject IPostService postservice;
-@inject IAuthService authService;
+@inject IAuthService authService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 <AuthorizeView>

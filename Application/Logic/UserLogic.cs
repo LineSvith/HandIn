@@ -1,5 +1,5 @@
 using Application.DaoInterfaces;
-using Application.LogicInterface;
+using Application.LogicInterfaces;
 using Domain.DTOs;
 using Domain.Models;
 
@@ -25,11 +25,9 @@ public class UserLogic : IUserLogic
         {
             Username = dto.UserName,
             Age = dto.Age,
-            Domain = dto.Domain,
             Email = dto.Email,
             Name = dto.Name,
             Password = dto.PassWord,
-            Role = dto.Role,
             SecurityLevel = dto.SecurityLevel
         };
         
@@ -37,7 +35,6 @@ public class UserLogic : IUserLogic
         
         return created;
     }
-    
 
     public async Task<AuthenticationUser> ValidateLogin(AuthUserLoginDto dto)
     {

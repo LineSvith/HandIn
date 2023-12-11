@@ -1,30 +1,28 @@
 using Application.LogicInterfaces;
 using Domain.DTOs;
 using Domain.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace WepAPI.Controllers;
+namespace WebAPI.Controllers;
 
 
 [ApiController]
 [Route("[controller]")]
 public class PostController : ControllerBase
 {
-    private readonly IPostLogic postLogic;
+    private readonly IPostLogic _postLogic;
 
     public PostController(IPostLogic postLogic)
     {
-        this.postLogic = postLogic;
+        this._postLogic = postLogic;
     }
   
     [HttpPost]
-    [Route("createPost"),Authorize]
-    public async Task<ActionResult<Post>> createAsync([FromBody]PostCreationDto dto)
+    public async Task<ActionResult<Post>> CreateAsync([FromBody]PostCreationDto dto)
     {
         try
         {
-            Post post = await postLogic.CreateAsync(dto);
+            Post post = await _postLogic.CreateAsync(dto);
             return Created($"/posts/{post.Id}", post);
         }
         catch (Exception e)
@@ -35,12 +33,12 @@ public class PostController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Post>>> GetAsync([FromQuery] int? postId, [FromQuery] string? title, [FromQuery] string? body)
+    public async Task<ActionResult<IEnumerable<Post>>> GetAsync([FromBody] PostSearchParametersDto dto)
     {
         try
         {
-            PostSearchParametersDto parameters = new(postId, title, body);
-            var posts = await postLogic.GetAsync(parameters);
+            PostSearchParametersDto parameters = new(dto.UserName,dto.PostId,dto.Title,dto.Body);
+            var posts = await _postLogic.GetAsync(parameters);
             return Ok(posts);
         }
         catch (Exception e)

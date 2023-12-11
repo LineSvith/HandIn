@@ -6,11 +6,11 @@
 
 <h3>ViewPosts</h3>
 
-@if (_posts == null)
+@if (posts == null)
 {
     <p>Loading...</p>
 }
-else if (!_posts.Any())
+else if (!posts.Any())
 {
     <p>No Posts to display</p>
 }
@@ -25,7 +25,7 @@ else
         </tr>
         </thead>
         <tbody>
-        @foreach (var item in _posts)
+        @foreach (var item in posts)
         {
             <tr> 
                 <td><a @onclick="() => NavigateToPost(item.Id)">@item.Id</a></td>
@@ -42,14 +42,14 @@ else
 }
 
 @code {
-    private IEnumerable<Post>? _posts;
+    private IEnumerable<Post>? posts;
     private string msg = "";
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            _posts = await postService.GetAsync(null, null, null, null);
+                posts = await postService.GetAsync(null, null, null, null);
         }
         catch (Exception e)
         {

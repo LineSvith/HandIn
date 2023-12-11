@@ -1,0 +1,30 @@
+POST https://localhost:7258/auth/login
+Content-Type: application/json
+
+{ "Username" : "Linesv", "Password" : "1234" }
+
+###
+
+POST https://localhost:7258/auth/login
+Content-Type: application/json
+
+{ "Username" : "Mariasv", "Password" : "4321" }
+
+###
+
+POST https://localhost:7258/auth/login
+Content-Type: application/json
+
+{ "Username" : "LineMaria", "Password" : "2345" }
+
+###
+
+POST https://localhost:7258/Users/CreateUser
+Content-Type: application/json
+
+{"userName": "linesv",
+  "passWord": "1234",
+  "email": "line@hotmail.com",
+  "name": "Line",
+  "age": 29,
+  "securityLevel": 14}

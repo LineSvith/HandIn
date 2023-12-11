@@ -1,3 +1,4 @@
+using Domain.Models;
 namespace Domain.DTOs;
 
 public class PostCreationDto
@@ -8,7 +9,7 @@ public class PostCreationDto
 
     public PostCreationDto(string username, string title, string body)
     {
-        Username = username;
+        this.Username = username;
         Title = title;
         this.body = body;
     }

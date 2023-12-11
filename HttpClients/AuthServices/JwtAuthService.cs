@@ -15,8 +15,6 @@ public class JwtAuthService : IAuthService
     public static string? Jwt { get; private set; } = "";
 
     public Action<ClaimsPrincipal> OnAuthStateChanged { get; set; } = null!;
-
-    
     
     public async Task LoginAsync(string username, string password)
     {
@@ -29,7 +27,7 @@ public class JwtAuthService : IAuthService
         string userAsJson = JsonSerializer.Serialize(userLoginDto);
         StringContent content = new(userAsJson, Encoding.UTF8, "application/json");
 
-        HttpResponseMessage response = await client.PostAsync("https://localhost:5238/auth/login", content);
+        HttpResponseMessage response = await client.PostAsync("http://localhost:5238/auth/login", content);
         string responseContent = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
@@ -52,12 +50,12 @@ public class JwtAuthService : IAuthService
         OnAuthStateChanged.Invoke(principal);
         return Task.CompletedTask;
     }
-
+    
     public async Task RegisterAsync(AuthenticationUser user)
     {
         string userAsJson = JsonSerializer.Serialize(user);
         StringContent content = new(userAsJson, Encoding.UTF8, "application/json");
-        HttpResponseMessage response = await client.PostAsync("https://localhost:5238/auth/register", content);
+        HttpResponseMessage response = await client.PostAsync("https://localhost:7258/auth/register", content);
         string responseContent = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)

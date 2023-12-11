@@ -1,21 +1,20 @@
-using Application.LogicInterface;
+using Application.LogicInterfaces;
 using Domain.DTOs;
 using Domain.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace WepAPI.Controllers;
+namespace WebAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]
 public class UsersController : ControllerBase
 {
 
-    private readonly IUserLogic userLogic;
+    private readonly IUserLogic _userLogic;
 
     public UsersController(IUserLogic userLogic)
     {
-        this.userLogic = userLogic;
+        this._userLogic = userLogic;
     }
     
     
@@ -25,7 +24,7 @@ public class UsersController : ControllerBase
     {
         try
         {
-            AuthenticationUser user = await userLogic.CreateAsync(dto);
+            AuthenticationUser user = await _userLogic.CreateAsync(dto);
             return Created($"/users/{user.Username}", user);
         }
         catch (Exception e)

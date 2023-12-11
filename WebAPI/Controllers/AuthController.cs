@@ -1,14 +1,13 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Application.LogicInterface;
+using Application.LogicInterfaces;
 using Domain.DTOs;
 using Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
-
-namespace WepAPI.Controllers;
+namespace WebAPI.Controllers;
 
 
 [ApiController]
@@ -16,13 +15,13 @@ namespace WepAPI.Controllers;
 public class AuthController : ControllerBase
 {
     
-    private readonly IConfiguration config;
-    private readonly IUserLogic userLogic;
+    private readonly IConfiguration _config;
+    private readonly IUserLogic _userLogic;
 
     public AuthController(IConfiguration config,IUserLogic userLogic)
     {
-        this.config = config;
-        this.userLogic = userLogic;
+        this._config = config;
+        this._userLogic = userLogic;
     }
     
     
@@ -31,14 +30,14 @@ public class AuthController : ControllerBase
     {
         try
         {
-            AuthenticationUser user = await userLogic.ValidateLogin(userLoginDto);
+            AuthenticationUser user = await _userLogic.ValidateLogin(userLoginDto);
             string token = GenerateJwt(user);
     
             return Ok(token);
         }
         catch (Exception e)
         {
-            Console.WriteLine("bro der virker ikke");
+            Console.WriteLine("Det virker ikke");
             return BadRequest(e.Message);
             
         }
@@ -49,14 +48,14 @@ public class AuthController : ControllerBase
     {
         List<Claim> claims = GenerateClaims(user);
     
-        SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]));
+        SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
         SigningCredentials signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
     
         JwtHeader header = new JwtHeader(signIn);
     
         JwtPayload payload = new JwtPayload(
-            config["Jwt:Issuer"],
-            config["Jwt:Audience"],
+            _config["Jwt:Issuer"],
+            _config["Jwt:Audience"],
             claims, 
             null,
             DateTime.UtcNow.AddMinutes(60));
@@ -71,15 +70,13 @@ public class AuthController : ControllerBase
     {
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, config["Jwt:Subject"]),
+            new Claim(JwtRegisteredClaimNames.Sub, _config["Jwt:Subject"]),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Role, user.Role),
             new Claim("DisplayName", user.Name),
             new Claim("Email", user.Email),
             new Claim("Age", user.Age.ToString()),
-            new Claim("Domain", user.Domain),
             new Claim("SecurityLevel", user.SecurityLevel.ToString())
         };
         return claims.ToList();

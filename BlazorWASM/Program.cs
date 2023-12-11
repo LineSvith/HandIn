@@ -22,7 +22,7 @@ AuthorizationPolicies.AddPolicies(builder.Services);
 builder.Services.AddScoped(
     sp => 
         new HttpClient { 
-            BaseAddress = new Uri("https://localhost:5238/") 
+            BaseAddress = new Uri("http://localhost:5238/") 
         }
 );
 var app = builder.Build();
